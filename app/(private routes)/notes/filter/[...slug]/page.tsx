@@ -4,7 +4,7 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import { fetchNotes } from "@/lib/api/clientApi";
+import { fetchNotes } from "@/lib/api/serverApi";
 import NotesClient from "./Notes.client";
 
 interface PageProps {
@@ -24,7 +24,7 @@ export async function generateMetadata({
     openGraph: {
       title: `${formattedTag} Notes | NoteHub`,
       description: `Browse all notes filtered by tag: ${formattedTag}`,
-      url: `https://08-zustand-one-sooty.vercel.app/notes/filter/${tag}`,
+      url: `https://09-auth-brown-kappa.vercel.app/notes/filter/${tag}`,
       images: [
         {
           url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
