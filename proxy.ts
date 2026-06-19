@@ -24,7 +24,6 @@ export async function proxy(req: NextRequest) {
   }
 
   if (isPrivateKey) {
-  
     if (accessToken) {
       return NextResponse.next();
     }
@@ -32,10 +31,22 @@ export async function proxy(req: NextRequest) {
     if (refreshToken) {
       try {
         const response = await checkSession();
-        
-     if (response && response.data) {
-          return NextResponse.next();
+
+        const setCookieHeader = response.headers["set-cookie"];
+
+        if (response && response.data && setCookieHeader) {
+          const nextResponse = NextResponse.next();
+
+          setCookieHeader.forEach((cookieString) => {
+            nextResponse.headers.append("Set-Cookie", cookieString);
+          });
+
+          return nextResponse;
         }
+    
+        url.pathname = "/sign-in";
+        return NextResponse.redirect(url);
+
       } catch {
         url.pathname = "/sign-in";
         return NextResponse.redirect(url);
