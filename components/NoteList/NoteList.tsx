@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteNote } from '../../lib/api';
+import { deleteNote } from '@/lib/api/clientApi';
 import Loader from '@/components/Status/Loader';
 import ErrorMessage from '@/components/Status/ErrorMessage';
 import EmptyState from '@/components/Status/EmptyState';
-import type { NoteWithTag } from '../../lib/api'; 
+import type { NoteWithTag } from '@/lib/api/clientApi'; 
 import css from './NoteList.module.css';
 
 interface NoteListProps {

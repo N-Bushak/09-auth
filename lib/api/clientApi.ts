@@ -15,6 +15,7 @@ const formatTag = (tag: string): string => {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 };
 
+export type NoteWithTag = Note;
 
 export async function register(email: string, password: string): Promise<User> {
   const { data } = await api.post<User>("/auth/register", { email, password });
