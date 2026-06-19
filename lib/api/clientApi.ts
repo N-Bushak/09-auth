@@ -1,5 +1,20 @@
+import { isAxiosError } from "axios";
 import { api } from "./api";
-import { User } from "@/types/user";
+import type { User } from "@/types/user";
+import type { NewNote, Note } from "@/types/note"; 
+
+const PER_PAGE = 12;
+
+interface NoteSearch {
+  notes: Note[];
+  totalPages: number;
+}
+
+const formatTag = (tag: string): string => {
+  const trimmed = tag.trim();
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+};
+
 
 export async function register(email: string, password: string): Promise<User> {
   const { data } = await api.post<User>("/auth/register", { email, password });
@@ -30,26 +45,43 @@ export async function updateMe(user: Partial<User>): Promise<User> {
   return data;
 }
 
-export async function fetchNotes() {
-  const { data } = await api.get("/notes");
+export async function fetchNotes(searchQuery: string, pageNumber: number, tag?: string): Promise<NoteSearch> {
+  const params: Record<string, string | number> = {
+    page: pageNumber,
+    perPage: PER_PAGE,
+  };
+
+  if (searchQuery) params.search = searchQuery;
+  if (tag && tag !== 'all') params.tag = tag;
+
+  const { data } = await api.get<NoteSearch>('/notes', { params });
   return data;
 }
 
-export async function fetchNoteById(id: string) {
-  const { data } = await api.get(`/notes/${id}`);
+export async function fetchNoteById(id: string): Promise<Note> {
+  const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 }
 
-export async function createNote(note: {
-  title: string;
-  content: string;
-  tag: string;
-}) {
-  const { data } = await api.post("/notes", note);
-  return data;
+export async function createNote(newNoteContent: NewNote): Promise<Note> {
+  const payload = {
+    title: newNoteContent.title.trim(),
+    content: newNoteContent.content.trim(),
+    tag: formatTag(newNoteContent.tag), 
+  };
+
+  try {
+    const { data } = await api.post<Note>('/notes', payload);
+    return data;
+  } catch (error: unknown) {
+    if (isAxiosError(error) && error.response?.data) {
+      throw new Error(error.response.data.message || "Validation failed");
+    }
+    throw error;
+  }
 }
 
-export async function deleteNote(id: string) {
-  const { data } = await api.delete(`/notes/${id}`);
+export async function deleteNote(id: string): Promise<Note> {
+  const { data } = await api.delete<Note>(`/notes/${id}`);
   return data;
 }
