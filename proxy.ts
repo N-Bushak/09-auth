@@ -12,8 +12,12 @@ export async function proxy(req: NextRequest) {
   const accessToken = req.cookies.get("accessToken")?.value;
   const refreshToken = req.cookies.get("refreshToken")?.value;
 
-  const isPrivateKey = privateRoutes.some((route) => pathname.startsWith(route));
-  const isPublicKey = publicRoutes.some((route) => pathname.startsWith(route));
+  const isPrivateKey = privateRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+  const isPublicKey = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
 
   if (isPublicKey) {
     if (accessToken) {
@@ -31,22 +35,24 @@ export async function proxy(req: NextRequest) {
     if (refreshToken) {
       try {
         const response = await checkSession();
-
         const setCookieHeader = response.headers["set-cookie"];
 
         if (response && response.data && setCookieHeader) {
           const nextResponse = NextResponse.next();
-
-          setCookieHeader.forEach((cookieString) => {
-            nextResponse.headers.append("Set-Cookie", cookieString);
-          });
+          
+          if (typeof setCookieHeader === "string") {
+            nextResponse.headers.append("Set-Cookie", setCookieHeader);
+          } else if (Array.isArray(setCookieHeader)) {
+            setCookieHeader.forEach((cookieString) => {
+              nextResponse.headers.append("Set-Cookie", cookieString);
+            });
+          }
 
           return nextResponse;
         }
-    
+
         url.pathname = "/sign-in";
         return NextResponse.redirect(url);
-
       } catch {
         url.pathname = "/sign-in";
         return NextResponse.redirect(url);
@@ -62,9 +68,10 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/profile",          
+    "/profile",
     "/profile/:path*",
-    "/notes/:path*", 
+    "/notes",
+    "/notes/:path*",
     "/sign-in",
     "/sign-up",
   ],
