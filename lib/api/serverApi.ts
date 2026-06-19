@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { api } from "./api";
 import { User } from "@/types/user";
 import { Note } from "@/types/note";
+import { AxiosResponse } from "axios"; 
 
 const PER_PAGE = 12;
 
@@ -48,10 +49,10 @@ export async function getMe(): Promise<User> {
   return data;
 }
 
-export async function checkSession(): Promise<User | null> {
+export async function checkSession(): Promise<AxiosResponse<User | null>> {
   const cookieStore = await cookies();
-  const { data } = await api.get<User | null>("/auth/session", {
+  const response = await api.get<User | null>("/auth/session", {
     headers: { Cookie: cookieStore.toString() },
   });
-  return data;
+  return response; 
 }
